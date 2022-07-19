@@ -2,11 +2,23 @@ const tileDisplay = document.querySelector('.tile-container')
 const keyboard = document.querySelector('.key-container')
 const messageContainer = document.querySelector('.message-container')
 
-const wordle = 'SUPER'
-let wordleArray = wordle.split("")
-console.log(wordleArray)
-const restartButton = document.querySelector('.restart')
+let wordle = ""
+let wordleArray
 
+const getWordle = () => {
+    fetch('http://localhost:8000/word')
+        .then(response => response.json())
+        .then(json => {
+            wordle = json.toUpperCase()
+        })
+        .then(result => {
+            wordleArray = wordle.split("")
+        })
+        .catch(err => console.log(err))
+    }
+    
+
+const restartButton = document.querySelector('.restart')
 
 const keys = [
     'Q', 
@@ -55,6 +67,7 @@ function startGame(){
     currentRow = 0
     currentTile = 0
     isGameOver = false
+    getWordle()
     wordleArray = wordle.split("")
 }
 
@@ -71,7 +84,6 @@ function resetGame(){
     restartButton.classList.remove('active')
     const keys = [...keyboard.querySelectorAll('button')]
 
-    console.log(keys)
     keys.forEach(key => {
         if(key.style.backgroundColor != null){
             key.style.backgroundColor = null
@@ -88,7 +100,6 @@ function resetGame(){
         tile.classList.remove('flip')
         tile.textContent = ""
     })
-    console.log(tiles)
 
     startGame()
 }
@@ -125,15 +136,12 @@ keys.forEach(key => {
 
 
 const handleClick = (letter) => {
-    console.log('clicked', letter)
     if(letter === 'DEL'){
         deleteLetter()
-        console.log(guessRows)
         return
     }
     if(letter === 'ENTER'){
         checkRow()
-        console.log(guessRows)
         if(isGameOver){
             if(won){
                 setTimeout(() => endGame(true), 5000)
@@ -145,8 +153,6 @@ const handleClick = (letter) => {
         return
     }
     addLetter(letter)
-    console.log(guessRows)
-
 }
 
 function addLetter(letter){
@@ -223,8 +229,6 @@ function animate(){
     const tiles = [...tileDisplay.querySelectorAll('.tile')]
     let checkTiles = [...tileDisplay.querySelectorAll(`[data-row="${currentRow}"`)]
 
-    console.log(keys)
-    console.log(tiles)
 
 
     // go thru one time each determining correct background color (1st: green, 2nd: yellow, 3rd: gray)
@@ -234,7 +238,6 @@ function animate(){
 
     guessRows[currentRow].forEach(letter => {
         if(letter === wordleArray[greenIndex]){
-            console.log('TEST')
             //find the button elem inside keybaord with same id as letter
             let correctKey = keys.find((key) => {
                 return key.id === letter
@@ -281,8 +284,6 @@ function animate(){
             })
 
             index++
-            console.log(wrongKey)
-            console.log(wrongTile)
             if(wrongTile.hasAttribute('data-bg')) {
                 if(wrongTile.dataset.bg !== "#202124"){
                     return
@@ -310,23 +311,14 @@ function animate(){
         
     // }})
 
-    console.log(checkTiles)
     checkTiles.forEach((tile, index) => {
-        console.log(tile)
-        console.log(index)
         setTimeout(() => {
             tile.classList.add('flip')
             tile.style.backgroundColor = `${tile.dataset.bg}`
             //FIND THE CORRESPONDING KEY AND CHANGE ITS BACKGROUND
-            console.log("HELPPPP")
-
             let changeKey = keyboard.querySelector(`#${tile.textContent}`)
             changeKey.style.backgroundColor = `${changeKey.dataset.bg}`
 
         }, 500 * index)
     })
-
-    console.log(wordleArray)
-    console.log(keys)
-    console.log(tiles)
 }
